@@ -1,0 +1,119 @@
+name: Build SVG Database
+
+on:
+  push:
+    paths:
+      - "S-V-Go/src/svg/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_database:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Generate JSON Database
+        run: |
+          node <<'EOF'
+          const fs = require("fs");
+          const path = require("path");
+          const crypto = require("crypto");
+
+          // CONFIGURATION
+          const ROOT = "S-V-Go/src/svg";
+          const OUT = "svg-database.json";
+          const ALLOWED = /\.svg$/i;
+
+          if (!fs.existsSync(ROOT)) {
+            console.error(`Error: Directory "${ROOT}" not found.`);
+            process.exit(1);
+          }
+
+          // Recursive directory walker
+          function walk(dir) {
+            let results = [];
+            const list = fs.readdirSync(dir);
+            list.forEach(function(file) {
+              file = path.join(dir, file);
+              const stat = fs.statSync(file);
+              if (stat && stat.isDirectory()) {
+                results = results.concat(walk(file));
+              } else {
+                if (ALLOWED.test(file)) results.push(file);
+              }
+            });
+            return results;
+          }
+
+          const files = walk(ROOT);
+          const entries = [];
+
+          console.log(`Processing ${files.length} SVGs...`);
+
+          for (const file of files) {
+            // Read content for Hash ID
+            const buf = fs.readFileSync(file);
+            const hash = crypto.createHash("sha256").update(buf).digest("hex");
+            
+            // Calculate Class (folder name relative to ROOT)
+            const relativePath = path.relative(ROOT, path.dirname(file));
+            // Replace backslashes for Windows compatibility, default to 'root' if top level
+            const className = relativePath === "" ? "root" : relativePath.replace(/\\/g, "/");
+
+            entries.push({
+              id: hash.slice(0, 12), // Short unique ID based on content
+              name: path.basename(file),
+              class: className
+            });
+          }
+
+          // Custom JSON formatting: Header + One line per entry
+          const jsonHeader = {
+            generated_at: new Date().toISOString(),
+            total: entries.length
+          };
+
+          // Remove the closing brace '}' from the header string to append array
+          let outputString = JSON.stringify(jsonHeader, null, 2);
+          outputString = outputString.substring(0, outputString.lastIndexOf("}"));
+          
+          // Map entries to single lines
+          const entryLines = entries.map(e => `    ${JSON.stringify(e)}`);
+          
+          // Combine
+          const finalContent = outputString + 
+            `,\n  "data": [\n${entryLines.join(",\n")}\n  ]\n}`;
+
+          fs.writeFileSync(OUT, finalContent);
+          console.log(`Database generated with ${entries.length} entries.`);
+          EOF
+
+      - name: Deploy to Database Branch
+        run: |
+          # Move generated file to temp so it survives branch switch
+          cp svg-database.json /tmp/svg-database.json
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Handle Orphan Branch 'database'
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/database; then
+            git checkout -f database
+            git reset --hard origin/database
+          else
+            git checkout --orphan database
+            git rm -rf .
+          fi
+          
+          # Copy file back
+          cp /tmp/svg-database.json svg-database.json
+          
+          git add svg-database.json
+          git commit -m "update: svg database [skip ci]" || echo "No changes to commit"
+          git push origin database --force
