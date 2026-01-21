@@ -1,0 +1,70 @@
+{
+  "short_name": "S V Go",
+  "name": "s V Go",
+  "start_url": "/S-V-Go",
+  "display": "standalone",
+  "description": "A Collection interactive and interested svg icons by our community.",
+  "dir": "auto",
+  "theme_color": "#ffbcbc",
+  "background_color": "#1c1b1f",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./src/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./src/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "src/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "src/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "display_override": ["window-controls-overlay"],
+  "protocol_handlers": [{ "protocol": "mailto", "url": "/newEmail?to=%s" }],
+  "shortcuts": [
+    {
+      "name": "Search Svg",
+      "short_name": "Search Svg",
+      "description": "click to search svg",
+      "url": "?q=",
+      "icons": [
+        {
+          "src": "./src/icon.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://iili.io/fGnhWIn.png",
+      "type": "image/png",
+      "description": "ScreenShot 1"
+    },
+    {
+      "src": "https://iili.io/fGnhsrQ.png",
+      "type": "image/png",
+      "description": "ScreenShot 2"
+    },
+    {
+      "src": "https://iili.io/fGnhsrQ.png",
+      "type": "image/png",
+      "description": "ScreenShot 3"
+    }
+  ]
+}
