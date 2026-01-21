@@ -3,7 +3,7 @@ name: Build SVG Database
 on:
   push:
     paths:
-      - "S-V-Go/src/svg/**"
+      - "src/svg/**"
   workflow_dispatch:
 
 permissions:
@@ -24,7 +24,7 @@ jobs:
           const path = require("path");
 
           // Configuration
-          const ROOT = "S-V-Go/src/svg";
+          const ROOT = "src/svg";
           const OUT = "images-meta.json";
           
           // Check if directory exists
