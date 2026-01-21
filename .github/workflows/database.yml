@@ -25,7 +25,7 @@ jobs:
 
           // Configuration
           const ROOT = "src/svg";
-          const OUT = "images-meta.json";
+          const OUT = "db.json";
           
           // Check if directory exists
           if (!fs.existsSync(ROOT)) {
@@ -87,7 +87,7 @@ jobs:
       - name: Deploy to Database Branch
         run: |
           # Move generated file to temp location
-          cp images-meta.json /tmp/images-meta.json
+          cp db.json /tmp/db.json
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -105,8 +105,8 @@ jobs:
           git rm -rf . || true
           
           # Restore the generated JSON
-          cp /tmp/images-meta.json images-meta.json
+          cp /tmp/db.json db.json
           
-          git add images-meta.json
+          git add db.json
           git commit -m "update: svg database [skip ci]" || echo "No changes to commit"
           git push origin database --force
