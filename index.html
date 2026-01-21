@@ -1,16 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script>navigator.serviceWorker.register('/S-V-Go/src/sw.js', { type: 'module' });</script>
-    <title>S V Go</title>
+    <title>S-V-Go | Professional SVG Editor</title>
+    <link rel="stylesheet" href="src/style.css">
 </head>
-
 <body>
+    <header class="navbar">
+        <div class="container">
+            <div class="logo"><h1>S-V-Go</h1><span id="icon-count">0 icons</span></div>
+            <div class="search-wrapper">
+                <input type="text" id="search-input" placeholder="Search 7,500+ icons..." autocomplete="off">
+            </div>
+            <button id="theme-toggle">🌓</button>
+        </div>
+    </header>
 
+    <main class="container">
+        <div id="icon-grid" class="icon-grid"></div>
+        <div id="loader">Loading Icon Database...</div>
+    </main>
+
+    <!-- EDITOR MODAL -->
+    <div id="editor-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <div class="editor-grid">
+                <!-- Visual Preview -->
+                <div class="preview-area">
+                    <div id="svg-display"></div>
+                    <p id="selected-name">icon-name</p>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="control-panel">
+                    <h3>Customization</h3>
+                    
+                    <div class="control-group">
+                        <label>Size: <span id="val-size">64</span>px</label>
+                        <input type="range" id="input-size" min="16" max="512" value="64">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Fill Color</label>
+                        <div class="input-row">
+                            <input type="color" id="input-fill" value="#333333">
+                            <label class="check-label">
+                                <input type="checkbox" id="check-currentcolor"> currentColor
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Stroke Color</label>
+                        <input type="color" id="input-stroke" value="#000000">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Stroke Width: <span id="val-stroke">0</span>px</label>
+                        <input type="range" id="input-stroke-w" min="0" max="10" step="0.5" value="0">
+                    </div>
+
+                    <div class="code-section">
+                        <label>Pure SVG Code</label>
+                        <textarea id="svg-code" readonly></textarea>
+                        <div class="button-group">
+                            <button id="btn-copy" class="btn-primary">Copy Code</button>
+                            <button id="btn-download" class="btn-outline">Download .svg</button>
+                        </div>
+                        <span id="copy-toast">Code Copied!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/app.js"></script>
 </body>
-
 </html>

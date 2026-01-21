@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>S‑V‑Go — SVG Icon Gallery</title>
+  <meta name="description" content="S‑V‑Go: Fast, pure HTML/CSS/JS SVG icon platform." />
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l9 4v6c0 5-4 9-9 10C7 21 3 17 3 12V6l9-4z" />
+        <path d="M12 8v4l3 3" />
+      </svg>
+      <div class="brand-text">
+        <h1>S‑V‑Go</h1>
+        <div class="meta" id="headerCount">Loading database...</div>
+      </div>
+    </div>
+
+    <div class="controls-inline">
+      <label class="theme-toggle" title="Toggle dark mode">
+        <input id="themeToggle" type="checkbox" />
+        <span class="toggle-ui"></span>
+      </label>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="search-panel">
+      <div class="search-row">
+        <input id="searchInput" type="search" placeholder="Search 7,500+ icons..." aria-label="Search" />
+      </div>
+
+      <div class="filters-row">
+        <div class="filter">
+          <label>Color</label>
+          <input id="colorInput" type="color" value="#2563eb" />
+        </div>
+        <div class="filter">
+          <label>Size (px)</label>
+          <input id="sizeInput" type="number" min="16" max="128" value="32" />
+        </div>
+        <div class="filter">
+          <label>Stroke</label>
+          <input id="strokeInput" type="number" min="0.5" max="4" step="0.5" value="1.5" />
+        </div>
+        <div class="filter-info" id="countIndicator">0 icons found</div>
+      </div>
+    </section>
+
+    <div id="iconGrid" class="grid" role="list"></div>
+
+    <section class="usage-docs">
+      <h2>Integration</h2>
+      <div class="usage-grid">
+        <div class="usage-card">
+          <h3>1. Include Framework</h3>
+          <pre><code>&lt;script src="https://[user].github.io/S-V-Go/src/user.js" defer&gt;&lt;/script&gt;</code></pre>
+        </div>
+        <div class="usage-card">
+          <h3>2. Use Icons</h3>
+          <pre><code>&lt;svg class="svgo svgo-abacus"&gt;&lt;/svg&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3 id="modalTitle">Icon Preview</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="previewCanvas" class="preview-area"></div>
+        <div class="modal-actions">
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="copySvg()">Copy SVG Code</button>
+            <button class="btn" onclick="downloadSvg()">Download .svg</button>
+          </div>
+          <code id="modalName" class="name-tag">svgo-icon</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="src/app.js"></script>
+</body>
+</html>
