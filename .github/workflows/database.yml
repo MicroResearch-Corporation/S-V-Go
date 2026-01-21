@@ -10,110 +10,103 @@ permissions:
   contents: write
 
 jobs:
-  build_database:
+  build-database:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      - name: Generate JSON Database
+      - name: Generate Metadata JSON
         run: |
           node <<'EOF'
           const fs = require("fs");
           const path = require("path");
-          const crypto = require("crypto");
 
-          // CONFIGURATION
+          // Configuration
           const ROOT = "S-V-Go/src/svg";
-          const OUT = "svg-database.json";
-          const ALLOWED = /\.svg$/i;
-
+          const OUT = "images-meta.json";
+          
+          // Check if directory exists
           if (!fs.existsSync(ROOT)) {
             console.error(`Error: Directory "${ROOT}" not found.`);
             process.exit(1);
           }
 
-          // Recursive directory walker
+          // Recursive function to find all SVGs
           function walk(dir) {
             let results = [];
             const list = fs.readdirSync(dir);
-            list.forEach(function(file) {
-              file = path.join(dir, file);
-              const stat = fs.statSync(file);
+            list.forEach(file => {
+              const filePath = path.join(dir, file);
+              const stat = fs.statSync(filePath);
               if (stat && stat.isDirectory()) {
-                results = results.concat(walk(file));
+                results = results.concat(walk(filePath));
               } else {
-                if (ALLOWED.test(file)) results.push(file);
+                if (file.toLowerCase().endsWith(".svg")) {
+                  results.push(filePath);
+                }
               }
             });
             return results;
           }
 
+          console.log("Scanning files...");
           const files = walk(ROOT);
-          const entries = [];
-
-          console.log(`Processing ${files.length} SVGs...`);
-
-          for (const file of files) {
-            // Read content for Hash ID
-            const buf = fs.readFileSync(file);
-            const hash = crypto.createHash("sha256").update(buf).digest("hex");
-            
-            // Calculate Class (folder name relative to ROOT)
-            const relativePath = path.relative(ROOT, path.dirname(file));
-            // Replace backslashes for Windows compatibility, default to 'root' if top level
-            const className = relativePath === "" ? "root" : relativePath.replace(/\\/g, "/");
-
-            entries.push({
-              id: hash.slice(0, 12), // Short unique ID based on content
-              name: path.basename(file),
-              class: className
-            });
-          }
-
-          // Custom JSON formatting: Header + One line per entry
-          const jsonHeader = {
-            generated_at: new Date().toISOString(),
-            total: entries.length
-          };
-
-          // Remove the closing brace '}' from the header string to append array
-          let outputString = JSON.stringify(jsonHeader, null, 2);
-          outputString = outputString.substring(0, outputString.lastIndexOf("}"));
           
-          // Map entries to single lines
-          const entryLines = entries.map(e => `    ${JSON.stringify(e)}`);
+          // Sort files alphabetically to ensure ID order remains stable across runs
+          files.sort();
+
+          console.log(`Found ${files.length} SVGs. Generating JSON...`);
+
+          const images = files.map((file, index) => {
+            const name = path.basename(file, ".svg");
+            // ID Generation: 000 + index. 
+            // Using padStart(5, '0') ensures 00000, 00001... 07550 etc.
+            // Adjust '5' if you want more or less padding.
+            const id = String(index).padStart(5, '0');
+
+            return {
+              name: name,
+              class: name,
+              id: id
+            };
+          });
+
+          // Custom JSON construction to keep objects on single lines
+          // Standard JSON.stringify(obj, null, 2) expands objects to multiple lines.
+          const lines = images.map(img => `    ${JSON.stringify(img)}`);
           
-          // Combine
-          const finalContent = outputString + 
-            `,\n  "data": [\n${entryLines.join(",\n")}\n  ]\n}`;
+          // Assemble the final string
+          const finalContent = `{\n  "total": ${images.length},\n  "generated_at": "${new Date().toISOString()}",\n  "images": [\n${lines.join(",\n")}\n  ]\n}`;
 
           fs.writeFileSync(OUT, finalContent);
-          console.log(`Database generated with ${entries.length} entries.`);
+          console.log("Done.");
           EOF
 
       - name: Deploy to Database Branch
         run: |
-          # Move generated file to temp so it survives branch switch
-          cp svg-database.json /tmp/svg-database.json
+          # Move generated file to temp location
+          cp images-meta.json /tmp/images-meta.json
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Handle Orphan Branch 'database'
+          # Check if 'database' branch exists, otherwise create orphan
           git fetch origin
           if git show-ref --verify --quiet refs/remotes/origin/database; then
             git checkout -f database
             git reset --hard origin/database
           else
             git checkout --orphan database
-            git rm -rf .
           fi
           
-          # Copy file back
-          cp /tmp/svg-database.json svg-database.json
+          # clean the branch to hold only the json file
+          git rm -rf . || true
           
-          git add svg-database.json
+          # Restore the generated JSON
+          cp /tmp/images-meta.json images-meta.json
+          
+          git add images-meta.json
           git commit -m "update: svg database [skip ci]" || echo "No changes to commit"
           git push origin database --force
